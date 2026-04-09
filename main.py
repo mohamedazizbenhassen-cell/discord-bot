@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+from discord.ui import View, Button
 import logging
 from dotenv import load_dotenv
 import os
@@ -26,6 +27,8 @@ secret_role = "admin"
 @bot.event
 async def on_ready():
      print(f"We are ready to go in, {bot.user.name}")
+     bot.add_view(RoleView())
+     bot.add_view(NicknameView())
 
 @bot.event
 async def on_member_join(member):
@@ -275,6 +278,198 @@ async def timeout_error(ctx, error):
         await ctx.send("I don't have permission to timeout members.")
     elif isinstance(error, commands.MemberNotFound):
         await ctx.send("User not found.")
+
+@bot.command()
+@commands.has_permissions(administrator=True)
+async def roles(ctx):
+    embed = discord.Embed(
+        title="🎭 Role Selection Panel",
+        description="Choose your roles by clicking buttons below",
+        color=discord.Color.dark_theme()
+    )
+
+    embed.add_field(name="🎂 Age", value="18-20\n20-26\n26-30", inline=False)
+    embed.add_field(name="🎮 Games", value="Valorant\nLeague of Legends\nCS GO\nGTA V\nFreeFire\nFortnite", inline=False)
+    embed.add_field(name="💖 Relationship", value="Single\nEngaged\nSituationship", inline=False)
+
+    await ctx.send(embed=embed, view=RoleView())
+
+@bot.command()
+@commands.has_permissions(administrator=True)
+async def rules(ctx):
+
+    embed = discord.Embed(
+        title="📜 No Rules Community Guidelines",
+        description="To ensure everyone has a great and enjoyable experience, please follow these rules:",
+        color=discord.Color.red()
+    )
+
+    embed.add_field(
+        name="🤝 Be Respectful",
+        value="• Respect everyone\n"
+              "• No harassment or hate speech\n"
+              "• Listen to staff",
+        inline=False
+    )
+
+    embed.add_field(
+        name="🚫 No Spam or Disruptions",
+        value="• No spam\n"
+              "• No disruptive behavior",
+        inline=False
+    )
+
+    embed.add_field(
+        name="📢 No Advertising",
+        value="• No promoting servers\n"
+              "• No unsolicited DMs",
+        inline=False
+    )
+
+    embed.add_field(
+        name="🔥 Freedom",
+        value="Other than the rules above — enjoy the server!",
+        inline=False
+    )
+
+    embed.set_footer(
+        text="Failure to comply with these rules may result in moderation actions."
+    )
+
+
+    file = discord.File("banner.jpg", filename="banner.jpg")
+    embed.set_image(url="attachment://banner.jpg")
+
+    await ctx.send(embed=embed, file=file)
+
+@bot.command()
+@commands.has_permissions(administrator=True)
+async def nickpanel(ctx):
+    embed = discord.Embed(
+        title="✏️ Nickname Change System",
+        description="Click the button below to request a nickname change.",
+        color=discord.Color.blue()
+    )
+
+    await ctx.send(embed=embed, view=NicknameView())
+
+
+class RoleView(View):
+    def __init__(self):
+        super().__init__(timeout=None)
+
+    async def toggle_role(self, interaction, role_name):
+        role = discord.utils.get(interaction.guild.roles, name=role_name)
+
+        if not role:
+            await interaction.response.send_message("Role not found.", ephemeral=True)
+            return
+
+        try:
+            if role in interaction.user.roles:
+                await interaction.user.remove_roles(role)
+                await interaction.response.send_message(f"Removed {role.name}", ephemeral=True)
+            else:
+                await interaction.user.add_roles(role)
+                await interaction.response.send_message(f"Added {role.name}", ephemeral=True)
+        except Exception as e:
+            print(e)
+            await interaction.response.send_message("Something went wrong.", ephemeral=True)
+
+    # AGE
+    @discord.ui.button(label="18-20", style=discord.ButtonStyle.primary, custom_id="age_18_20")
+    async def age1(self, interaction: discord.Interaction, button: Button):
+        await self.toggle_role(interaction, "18-20")
+
+    @discord.ui.button(label="20-26", style=discord.ButtonStyle.primary, custom_id="age_20_26")
+    async def age2(self, interaction: discord.Interaction, button: Button):
+        await self.toggle_role(interaction, "20-26")
+
+    @discord.ui.button(label="26-30", style=discord.ButtonStyle.primary, custom_id="age_26_30")
+    async def age3(self, interaction: discord.Interaction, button: Button):
+        await self.toggle_role(interaction, "26-30")
+
+    # GAMES
+    @discord.ui.button(label="🎯 Valorant", style=discord.ButtonStyle.success, custom_id="game_valorant")
+    async def valorant(self, interaction: discord.Interaction, button: Button):
+        await self.toggle_role(interaction, "Valorant")
+
+    @discord.ui.button(label="🧠 League of Legends", style=discord.ButtonStyle.success, custom_id="game_lol")
+    async def lol(self, interaction: discord.Interaction, button: Button):
+        await self.toggle_role(interaction, "League of Legends")
+
+    @discord.ui.button(label="💣 CS GO", style=discord.ButtonStyle.success, custom_id="game_csgo")
+    async def csgo(self, interaction: discord.Interaction, button: Button):
+        await self.toggle_role(interaction, "CS GO")
+
+    @discord.ui.button(label="🚗 GTA V", style=discord.ButtonStyle.success, custom_id="game_gtav")
+    async def gtav(self, interaction: discord.Interaction, button: Button):
+        await self.toggle_role(interaction, "GTA V")
+
+    @discord.ui.button(label="🔥 FreeFire", style=discord.ButtonStyle.success, custom_id="game_freefire")
+    async def freefire(self, interaction: discord.Interaction, button: Button):
+        await self.toggle_role(interaction, "FreeFire")
+
+    @discord.ui.button(label="🏆 Fortnite", style=discord.ButtonStyle.success, custom_id="game_fortnite")
+    async def fortnite(self, interaction: discord.Interaction, button: Button):
+        await self.toggle_role(interaction, "Fortnite")
+
+    # RELATIONSHIP
+    @discord.ui.button(label="💔 Single", style=discord.ButtonStyle.secondary, custom_id="rel_single")
+    async def single(self, interaction: discord.Interaction, button: Button):
+        await self.toggle_role(interaction, "Single")
+
+    @discord.ui.button(label="💍 Engaged", style=discord.ButtonStyle.secondary, custom_id="rel_engaged")
+    async def engaged(self, interaction: discord.Interaction, button: Button):
+        await self.toggle_role(interaction, "Engaged")
+
+    @discord.ui.button(label="🤷 Situationship", style=discord.ButtonStyle.secondary, custom_id="rel_situation")
+    async def situation(self, interaction: discord.Interaction, button: Button):
+        await self.toggle_role(interaction, "Situationship")
+
+    # CLEAR
+    @discord.ui.button(label="🧹 Clear All", style=discord.ButtonStyle.danger, custom_id="clear_roles")
+    async def clear(self, interaction: discord.Interaction, button: Button):
+        roles_to_remove = [
+            "18-20", "20-26", "26-30",
+            "Valorant", "League of Legends", "CS GO", "GTA V", "FreeFire", "Fortnite",
+            "Single", "Engaged", "Situationship"
+        ]
+
+        for role_name in roles_to_remove:
+            role = discord.utils.get(interaction.guild.roles, name=role_name)
+            if role and role in interaction.user.roles:
+                await interaction.user.remove_roles(role)
+
+        await interaction.response.send_message("All roles cleared.", ephemeral=True)
+
+class NicknameView(View):
+    def __init__(self):
+        super().__init__(timeout=None)
+
+    @discord.ui.button(label="Request Nickname", style=discord.ButtonStyle.primary)
+    async def request_nick(self, interaction: discord.Interaction, button: Button):
+
+        # ✅ VERY IMPORTANT FIX
+        await interaction.response.defer(ephemeral=True)
+
+        await interaction.followup.send("✏️ Please type your new nickname in chat.", ephemeral=True)
+
+        def check(msg):
+            return msg.author == interaction.user and msg.channel == interaction.channel
+
+        try:
+            msg = await bot.wait_for("message", timeout=60, check=check)
+            new_name = msg.content
+
+            try:
+                await interaction.user.edit(nick=new_name)
+                await interaction.followup.send(f"✅ Your nickname has been changed to: {new_name}", ephemeral=True)
+            except discord.Forbidden:
+                await interaction.followup.send("❌ I can't change your nickname.", ephemeral=True)
+
+        except:
+            await interaction.followup.send("⏰ You took too long.", ephemeral=True)
 
 bot.run(token,log_handler=handler,log_level=logging.DEBUG)
 
